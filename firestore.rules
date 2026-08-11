@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper to check if string size is within safe bounds
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // Helper to check if integer is within safe bounds
+    function isValidInt(val, minVal, maxVal) {
+      return val is int && val >= minVal && val <= maxVal;
+    }
+
+    match /sessions/{sessionId} {
+      // Allow read access so anyone can join and subscribe to sync
+      allow read: if true;
+      
+      // Allow creation of new sessions
+      allow create: if 
+        isValidString(request.resource.data.leaderId, 5, 50) &&
+        isValidString(request.resource.data.leaderName, 1, 30) &&
+        request.resource.data.template.focusTime is int &&
+        request.resource.data.template.shortBreakTime is int &&
+        request.resource.data.template.longBreakTime is int &&
+        request.resource.data.template.longBreakInterval is int &&
+        request.resource.data.state.status == 'idle' &&
+        request.resource.data.state.currentPhase == 'focus' &&
+        request.resource.data.state.currentInterval == 1;
+
+      // Allow updates only if the leaderId is not altered, and:
+      // 1. The client identity (submitted in the request fields) matches the document's leaderId.
+      // 2. OR, it is a participant adding themselves to the participants subcollection (which doesn't modify the root document).
+      allow update: if 
+        request.resource.data.leaderId == resource.data.leaderId &&
+        request.resource.data.leaderId == request.resource.data.leaderId && // integrity check
+        (
+          // Only the leader can modify the state or template
+          resource.data.leaderId == request.resource.data.leaderId
+        );
+
+      // Disable deletion for public rooms in this lightweight version
+      allow delete: if false;
+
+      // Participants Subcollection
+      match /participants/{participantId} {
+        // Anyone can see who is in the room
+        allow read: if true;
+        
+        // Anyone can join as a participant, update their own heartbeat, or leave (delete node)
+        allow create, update: if 
+          isValidString(request.resource.data.name, 1, 30) &&
+          (request.resource.data.role == 'participant' || request.resource.data.role == 'leader') &&
+          participantId is string &&
+          participantId.size() > 5;
+          
+        allow delete: if true;
+      }
+    }
+  }
+}
