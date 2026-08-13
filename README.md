@@ -63,3 +63,23 @@ Make sure you have [Node.js](https://nodejs.org/) installed.
 1. Enable the **Cloud Firestore** database in your Firebase project.
 2. Update the credentials in `src/firebase.js` with your project's configuration.
 3. Deploy the database rules found in `firestore.rules` inside your Firebase Console Rules tab to authorize read, write, and delete operations correctly.
+
+---
+
+## 📱 Platforms & Native Applications
+
+In addition to the Web Application, **Shutup & Study** is available as native applications for Android and macOS:
+
+### 🤖 Android Mobile App (`android/`)
+A native Android application written in **Kotlin** using **Jetpack Compose** and **Kotlin Coroutines**.
+- **Monochrome Neumorphic UI**: Recreates the clean light/dark neumorphic theme using native canvas strokes and vector mask offsets.
+- **Background Timer Service**: Uses an Android Foreground Service (with `specialUse` service type) to manage high-precision countdowns. The service automatically promotes to foreground execution only when the app is minimized, showing notification progress and lockscreen media actions (Play, Pause, Reset, Skip).
+- **Nothing Phone Glyph Interface**: Integrates matrix LED ticks directly with physical Glyph progress bars on Nothing Phone (2) using customized native JNI matrix SDK bridges.
+- **Home Screen Widget**: A custom Android app widget that displays live room status and timer progress on the device launcher.
+- **Offline Solo Study Timer**: A local distraction-free Pomodoro session that works 100% offline. It runs the service locally without database connectivity, requiring no username setup or network permissions. Includes local settings control.
+
+### 🍏 macOS Desktop App (`macos/`)
+A native macOS utility app written in **Swift** using **SwiftUI**.
+- **Real-Time Client**: Synchronizes with Cloud Firestore study sessions.
+- **Swift Synth Chimes**: Utilizes macOS AVFoundation audio engines to output chime notifications at focus transitions.
+- **MenuBar & Compact Dial View**: Compact, distraction-free desktop view that fits cleanly into any macOS workspace layout.
