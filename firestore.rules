@@ -39,8 +39,8 @@ service cloud.firestore {
           resource.data.leaderId == request.resource.data.leaderId
         );
 
-      // Disable deletion for public rooms in this lightweight version
-      allow delete: if false;
+      // Allow deletion of session documents
+      allow delete: if true;
 
       // Participants Subcollection
       match /participants/{participantId} {

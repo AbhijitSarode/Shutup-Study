@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, LogIn, Sparkles, BookOpen, Clock, User, ArrowRight, ShieldCheck 
+  BookOpen, Clock, User, Sparkles
 } from 'lucide-react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, serverTimestamp } from './firebase';
 import StudySession from './components/StudySession';
+import LocalTimer from './components/LocalTimer';
 
 export default function App() {
   const [roomId, setRoomId] = useState(null);
@@ -22,6 +23,7 @@ export default function App() {
   const [shortBreak, setShortBreak] = useState(5);
   const [longBreak, setLongBreak] = useState(15);
   const [intervals, setIntervals] = useState(4);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 1. Initialize User ID and Room ID from URL on load
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function App() {
 
   const checkAndJoinRoom = async (targetRoomId, nameToUse, uidToUse) => {
     setJoinError('');
+    setIsSubmitting(true);
     try {
       const docRef = doc(db, 'sessions', targetRoomId);
       const snapshot = await getDoc(docRef);
@@ -79,13 +82,17 @@ export default function App() {
       }
     } catch (e) {
       console.error(e);
-      setJoinError('Error connecting to database. Please try again.');
+      setJoinError(`Error connecting to database: ${e.message || e.toString()}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCreateRoom = async (e) => {
     e.preventDefault();
-    if (!userName.trim()) return;
+    if (!userName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    setJoinError('');
 
     // Save name
     localStorage.setItem('shutup_study_username', userName.trim());
@@ -123,7 +130,9 @@ export default function App() {
       window.history.pushState({ path: newUrl }, '', newUrl);
     } catch (e) {
       console.error("Failed to create room:", e);
-      setJoinError("Failed to initialize session in Firestore. Please check settings.");
+      setJoinError(`Failed to initialize session: ${e.message || e.toString()}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -179,65 +188,74 @@ export default function App() {
 
   return (
     <div className="flex-1 w-full max-w-md mx-auto flex flex-col justify-center px-6 py-12">
-      {/* Brand logo & tagline */}
-      <div className="text-center mb-8 flex flex-col items-center">
-        <div className="w-16 h-16 rounded-3xl neu-container flex items-center justify-center mb-4 bg-gray-50 border border-white/60">
-          <BookOpen className="text-gray-700" size={32} />
-        </div>
-        <h1 className="text-3xl font-extrabold text-primary tracking-tight" style={{ fontFamily: 'var(--font-timer)' }}>
-          Shutup & Study
-        </h1>
-        <p className="text-xs font-semibold text-muted tracking-wide uppercase mt-1">
-          Synchronized Study Rooms
-        </p>
-      </div>
+      {/* Only show header logo and joinError for dashboard steps (not for active local session) */}
+      {step !== 'local-session' && (
+        <>
+          {/* Brand logo & tagline */}
+          <div className="text-center mb-8 flex flex-col items-center animate-fadeIn">
+            <div className="w-16 h-16 rounded-3xl neu-container flex items-center justify-center mb-4 bg-gray-50 border border-white/60">
+              <BookOpen className="text-gray-700" size={32} />
+            </div>
+            <h1 className="text-3xl font-extrabold text-primary tracking-tight" style={{ fontFamily: 'var(--font-timer)' }}>
+              Shutup & Study
+            </h1>
+            <p className="text-xs font-semibold text-muted tracking-wide uppercase mt-1">
+              Synchronized Study Rooms
+            </p>
+          </div>
 
-      {joinError && (
-        <div className="neu-card-sm p-4 mb-6 border border-rose-100 bg-rose-50/20 text-rose-500 text-sm text-center">
-          {joinError}
-        </div>
+          {joinError && (
+            <div className="neu-card-sm p-4 mb-6 border border-rose-100 bg-rose-50/20 text-rose-500 text-sm text-center">
+              {joinError}
+            </div>
+          )}
+        </>
       )}
 
       {/* Screen 1: Home dashboard */}
       {step === 'home' && (
-        <div className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col gap-6 w-full animate-fadeIn">
           
-          {/* Section A: Create Room Button Card */}
-          <div className="neu-container p-6 flex flex-col gap-4 border border-white/60">
-            <h2 className="text-base font-bold text-secondary flex items-center gap-2">
-              <Plus size={18} /> Create Study Session
-            </h2>
-            <p className="text-xs text-muted leading-relaxed">
-              Design a custom pomodoro template. Anyone with the link can join your synchronized group clock.
-            </p>
-            <button 
-              className="neu-button w-full py-3.5 mt-2 bg-gray-50 border border-white/80 font-semibold"
-              onClick={() => setStep('create-room-setup')}
-            >
-              Start Session Creator
-              <ArrowRight size={16} />
-            </button>
-          </div>
+          {/* Card 1: Offline Personal Pomodoro Timer Teaser */}
+          <LocalTimer isActive={false} onStart={() => setStep('local-session')} />
 
-          {/* Section B: Join Room Card */}
+          {/* Card 2: Group Study Session */}
           <div className="neu-container p-6 flex flex-col gap-4 border border-white/60">
-            <h2 className="text-base font-bold text-secondary flex items-center gap-2">
-              <LogIn size={18} /> Join Study Session
-            </h2>
-            <form onSubmit={handleManualJoin} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-base font-bold text-primary flex items-center gap-2" style={{ fontWeight: '700' }}>
+                <span style={{ fontSize: '1.25rem', lineHeight: '1' }}>👥</span> Group Study Session
+              </h2>
+              <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: '0.825rem', color: '#7e7e82' }}>
+                Study together with friends in a synchronized room. Enter a room code to join, or create a new room session.
+              </p>
+            </div>
+
+            <form onSubmit={handleManualJoin} className="flex flex-col gap-3 mt-1">
               <input 
                 type="text" 
-                placeholder="Enter Room Code or Invite Link" 
+                placeholder="Enter Room Code" 
                 value={inputRoomId}
                 onChange={(e) => setInputRoomId(e.target.value)}
                 className="neu-input text-sm"
                 required
+                disabled={isSubmitting}
               />
+              
               <button 
                 type="submit" 
-                className="neu-button w-full py-3.5 font-semibold mt-1"
+                className="neu-button w-full py-3.5 font-bold text-sm text-primary mt-1"
+                disabled={isSubmitting}
               >
                 Join Room
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setStep('create-room-setup')}
+                className="neu-button w-full py-3.5 font-bold text-sm text-primary"
+                disabled={isSubmitting}
+              >
+                Create New Room
               </button>
             </form>
           </div>
@@ -268,14 +286,16 @@ export default function App() {
                 maxLength={20}
                 required
                 autoFocus
+                disabled={isSubmitting}
               />
             </div>
 
             <button 
               type="submit" 
               className="neu-button w-full py-3.5 mt-2 bg-emerald-50 border border-white/80 text-emerald-700 font-semibold flex items-center justify-center gap-2"
+              disabled={isSubmitting}
             >
-              <span>Join Study Room</span>
+              <span>{isSubmitting ? 'Joining Room...' : 'Join Study Room'}</span>
               <Sparkles size={16} />
             </button>
 
@@ -283,6 +303,7 @@ export default function App() {
               type="button" 
               className="neu-button w-full py-3 text-secondary"
               onClick={() => setStep('home')}
+              disabled={isSubmitting}
             >
               Back to Dashboard
             </button>
@@ -294,10 +315,10 @@ export default function App() {
       {step === 'create-room-setup' && (
         <form onSubmit={handleCreateRoom} className="neu-container p-8 flex flex-col gap-5 border border-white/60">
           <div className="text-center">
-            <h2 className="text-lg font-bold text-secondary flex items-center justify-center gap-2">
-              <ShieldCheck size={18} className="text-secondary" /> Study Setup
+            <h2 className="text-lg font-bold text-primary flex items-center justify-center gap-2">
+              <span style={{ fontSize: '1.2rem' }}>👥</span> Group Study Setup
             </h2>
-            <p className="text-xs text-muted mt-1">Configure your group's pomodoro templates.</p>
+            <p className="text-xs text-secondary mt-1">Configure your group's pomodoro templates.</p>
           </div>
 
           <div className="flex flex-col gap-4">
@@ -324,7 +345,7 @@ export default function App() {
                   min="1" 
                   max="180" 
                   value={focusTime}
-                  onChange={(e) => setFocusTime(e.target.value)}
+                  onChange={(e) => setFocusTime(Number(e.target.value))}
                   className="neu-input text-sm"
                   required
                 />
@@ -339,7 +360,7 @@ export default function App() {
                   min="1" 
                   max="60" 
                   value={shortBreak}
-                  onChange={(e) => setShortBreak(e.target.value)}
+                  onChange={(e) => setShortBreak(Number(e.target.value))}
                   className="neu-input text-sm"
                   required
                 />
@@ -354,14 +375,14 @@ export default function App() {
                   min="1" 
                   max="120" 
                   value={longBreak}
-                  onChange={(e) => setLongBreak(e.target.value)}
+                  onChange={(e) => setLongBreak(Number(e.target.value))}
                   className="neu-input text-sm"
                   required
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-bold text-muted uppercase tracking-wider">
                   Interval Count
                 </label>
                 <input 
@@ -369,7 +390,7 @@ export default function App() {
                   min="1" 
                   max="10" 
                   value={intervals}
-                  onChange={(e) => setIntervals(e.target.value)}
+                  onChange={(e) => setIntervals(Number(e.target.value))}
                   className="neu-input text-sm"
                   required
                 />
@@ -381,19 +402,29 @@ export default function App() {
             <button 
               type="submit" 
               className="neu-button w-full py-3.5 bg-emerald-50 border border-white/80 text-emerald-700 font-semibold"
+              disabled={isSubmitting}
             >
-              Start & Create Room
+              {isSubmitting ? 'Creating Room...' : 'Start & Create Room'}
             </button>
             <button 
               type="button" 
               className="neu-button w-full py-3 text-secondary"
               onClick={() => setStep('home')}
+              disabled={isSubmitting}
             >
               Back to Dashboard
             </button>
           </div>
         </form>
       )}
+
+      {/* Screen 4: Active Local Timer */}
+      {step === 'local-session' && (
+        <div className="flex flex-col gap-6 w-full animate-fadeIn">
+          <LocalTimer isActive={true} onLeave={() => setStep('home')} />
+        </div>
+      )}
+
     </div>
   );
 }
