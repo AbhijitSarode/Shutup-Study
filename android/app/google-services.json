@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "545877201348",
+    "project_id": "shutupnstudy-1734a",
+    "storage_bucket": "shutupnstudy-1734a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545877201348:android:9dec1f283ebdaee1371491",
+        "android_client_info": {
+          "package_name": "com.abhijit.shutupNstudy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe_Au8D7_W_LFHQj1zDdA-DTPgi-x6BrA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
