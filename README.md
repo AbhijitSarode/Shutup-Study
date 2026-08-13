@@ -1,16 +1,65 @@
-# React + Vite
+# 🧠 Shutup & Study
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+🚀 **[Open Web Application](https://abhijitsarode.github.io/Shutup-Study/)**
 
-Currently, two official plugins are available:
+A collaborative, distraction-free Pomodoro study room built with React, Vite, and Firebase Firestore. Designed to help study buddies co-work in real time with minimum friction.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **🎨 Minimalist Neumorphic UI**: Embossed cards, debossed inputs, and clean layouts that adapt to both **Light** and **Dark** system preferences.
+- **🔄 Real-Time Synchronized Timers**: High-accuracy client-side countdowns synced to Firestore server timestamps, avoiding write rate limits while keeping everyone perfectly aligned.
+- **⚡ Hands-Free Auto-Transitions**: Timer phases automatically advance (Study ➔ Short Break ➔ Long Break) to minimize user interactions so you can stay in the zone.
+- **🎵 Phase-Specific Synthesizer Chimes**: Dynamic audio chimes generated using the Web Audio API (ascending melody for Focus, relaxing tones for Break, and an uplifting arpeggio for Long Break).
+- **📋 Real-Time Leader Actions Log**: Instant status updates showing exactly what the room leader did (e.g. started, paused, skipped, or updated settings).
+- **🏆 Set Completion Flow**: A congratulatory overlay modal triggers once a full Pomodoro cycle is finished. The leader can restart the cycle or discard/close the room (which redirects everyone back home).
+- **📱 Fully Responsive**: Custom layout queries that hide the Study Buddies list on mobile viewports, leaving the Pomodoro clock as the sole focus element.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## 🛠️ Tech Stack
+
+- **Frontend**: React, Vite
+- **Styling**: Custom CSS (Vanilla variables & Neumorphic design tokens)
+- **Database**: Cloud Firestore (Real-time snapshot subscriptions)
+- **Assets**: Lucide React Icons, Canvas Confetti
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have [Node.js](https://nodejs.org/) installed.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AbhijitSarode/Shutup-Study.git
+   cd Shutup-Study
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the local development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build the production bundle:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🔧 Firebase Setup
+
+1. Enable the **Cloud Firestore** database in your Firebase project.
+2. Update the credentials in `src/firebase.js` with your project's configuration.
+3. Deploy the database rules found in `firestore.rules` inside your Firebase Console Rules tab to authorize read, write, and delete operations correctly.
